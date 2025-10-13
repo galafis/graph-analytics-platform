@@ -1,5 +1,11 @@
 # Graph Analytics and Network Science Platform
 
+![Julia](https://img.shields.io/badge/Julia-1.9%2B-9558B2)
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![NetworkX](https://img.shields.io/badge/NetworkX-Graph%20Analysis-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Performance](https://img.shields.io/badge/Performance-High-brightgreen)
+
 [English](#english) | [Português](#português)
 
 ---
