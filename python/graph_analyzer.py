@@ -24,9 +24,16 @@ class GraphAnalyzer:
     algorithms for advanced analytics.
     """
     
-    def __init__(self):
-        """Initialize graph analyzer."""
-        self.graph = None
+    def __init__(self, graph: Optional[nx.Graph] = None):
+        """
+        Initialize graph analyzer.
+        
+        Parameters
+        ----------
+        graph : nx.Graph, optional
+            NetworkX graph to analyze. If None, use load_graph() to load one.
+        """
+        self.graph = graph
         
     def load_graph(self, path: str, format: str = 'gml') -> nx.Graph:
         """
@@ -393,4 +400,67 @@ class GraphAnalyzer:
             'diameter': nx.diameter(G) if nx.is_connected(G) else None,
             'avg_shortest_path': nx.average_shortest_path_length(G) if nx.is_connected(G) else None
         }
+
+
+
+    def calculate_network_metrics(self, G: Optional[nx.Graph] = None) -> Dict[str, float]:
+        """
+        Calculate comprehensive network metrics.
+        
+        Parameters
+        ----------
+        G : nx.Graph, optional
+            Graph to analyze (uses self.graph if None)
+            
+        Returns
+        -------
+        metrics : dict
+            Dictionary of network metrics including:
+            - avg_degree: Average node degree
+            - density: Graph density
+            - avg_clustering: Average clustering coefficient
+            - transitivity: Graph transitivity
+            - avg_path_length: Average shortest path length (if connected)
+            - diameter: Graph diameter (if connected)
+            - num_nodes: Number of nodes
+            - num_edges: Number of edges
+        """
+        if G is None:
+            G = self.graph
+        
+        if G is None:
+            raise ValueError("No graph available. Pass a graph or use load_graph()/create_random_graph() first.")
+        
+        metrics = {}
+        
+        # Basic metrics
+        metrics['num_nodes'] = G.number_of_nodes()
+        metrics['num_edges'] = G.number_of_edges()
+        
+        # Degree metrics
+        degrees = [d for n, d in G.degree()]
+        metrics['avg_degree'] = np.mean(degrees) if degrees else 0
+        metrics['max_degree'] = max(degrees) if degrees else 0
+        metrics['min_degree'] = min(degrees) if degrees else 0
+        
+        # Density
+        metrics['density'] = nx.density(G)
+        
+        # Clustering
+        metrics['avg_clustering'] = nx.average_clustering(G)
+        metrics['transitivity'] = nx.transitivity(G)
+        
+        # Path metrics (only for connected graphs)
+        if nx.is_connected(G):
+            metrics['avg_path_length'] = nx.average_shortest_path_length(G)
+            metrics['diameter'] = nx.diameter(G)
+        else:
+            # For disconnected graphs, calculate for largest component
+            largest_cc = max(nx.connected_components(G), key=len)
+            subgraph = G.subgraph(largest_cc)
+            metrics['avg_path_length'] = nx.average_shortest_path_length(subgraph)
+            metrics['diameter'] = nx.diameter(subgraph)
+            metrics['num_components'] = nx.number_connected_components(G)
+        
+        return metrics
 
