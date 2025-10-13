@@ -562,7 +562,7 @@ class GraphAnalyzer:
         
         preds = nx.preferential_attachment(G, [(u, v)])
         for _, _, score in preds:
-            return score
+            return float(score)
         return 0.0
     
     def calculate_all_centralities(self, G: Optional[nx.Graph] = None) -> Dict[str, Dict[int, float]]:
