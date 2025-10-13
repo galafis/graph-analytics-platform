@@ -463,4 +463,179 @@ class GraphAnalyzer:
             metrics['num_components'] = nx.number_connected_components(G)
         
         return metrics
+    
+    def common_neighbors_score(self, u: int, v: int, G: Optional[nx.Graph] = None) -> float:
+        """
+        Calculate common neighbors score for link prediction.
+        
+        Parameters
+        ----------
+        u : int
+            First node
+        v : int
+            Second node
+        G : nx.Graph, optional
+            Graph to analyze
+            
+        Returns
+        -------
+        score : float
+            Number of common neighbors
+        """
+        if G is None:
+            G = self.graph
+        
+        return float(len(list(nx.common_neighbors(G, u, v))))
+    
+    def jaccard_coefficient(self, u: int, v: int, G: Optional[nx.Graph] = None) -> float:
+        """
+        Calculate Jaccard coefficient for link prediction.
+        
+        Parameters
+        ----------
+        u : int
+            First node
+        v : int
+            Second node
+        G : nx.Graph, optional
+            Graph to analyze
+            
+        Returns
+        -------
+        score : float
+            Jaccard coefficient
+        """
+        if G is None:
+            G = self.graph
+        
+        preds = nx.jaccard_coefficient(G, [(u, v)])
+        for _, _, score in preds:
+            return score
+        return 0.0
+    
+    def adamic_adar_score(self, u: int, v: int, G: Optional[nx.Graph] = None) -> float:
+        """
+        Calculate Adamic-Adar score for link prediction.
+        
+        Parameters
+        ----------
+        u : int
+            First node
+        v : int
+            Second node
+        G : nx.Graph, optional
+            Graph to analyze
+            
+        Returns
+        -------
+        score : float
+            Adamic-Adar score
+        """
+        if G is None:
+            G = self.graph
+        
+        preds = nx.adamic_adar_index(G, [(u, v)])
+        for _, _, score in preds:
+            return score
+        return 0.0
+    
+    def preferential_attachment_score(self, u: int, v: int, G: Optional[nx.Graph] = None) -> float:
+        """
+        Calculate preferential attachment score for link prediction.
+        
+        Parameters
+        ----------
+        u : int
+            First node
+        v : int
+            Second node
+        G : nx.Graph, optional
+            Graph to analyze
+            
+        Returns
+        -------
+        score : float
+            Product of node degrees
+        """
+        if G is None:
+            G = self.graph
+        
+        preds = nx.preferential_attachment(G, [(u, v)])
+        for _, _, score in preds:
+            return float(score)
+        return 0.0
+    
+    def calculate_all_centralities(self, G: Optional[nx.Graph] = None) -> Dict[str, Dict[int, float]]:
+        """
+        Calculate all centrality measures.
+        
+        Parameters
+        ----------
+        G : nx.Graph, optional
+            Graph to analyze
+            
+        Returns
+        -------
+        centralities : dict
+            Dictionary with centrality measures
+        """
+        if G is None:
+            G = self.graph
+        
+        return {
+            'degree': nx.degree_centrality(G),
+            'betweenness': nx.betweenness_centrality(G),
+            'closeness': nx.closeness_centrality(G),
+            'eigenvector': nx.eigenvector_centrality(G, max_iter=1000),
+            'pagerank': nx.pagerank(G)
+        }
+    
+    def top_influencers(
+        self,
+        method: str = 'pagerank',
+        top_k: int = 10,
+        G: Optional[nx.Graph] = None
+    ) -> List[Tuple[int, float]]:
+        """
+        Find top influencers in the network.
+        
+        Parameters
+        ----------
+        method : str
+            Centrality method to use
+        top_k : int
+            Number of top influencers to return
+        G : nx.Graph, optional
+            Graph to analyze
+            
+        Returns
+        -------
+        influencers : list of tuples
+            List of (node, score) tuples
+        """
+        if G is None:
+            G = self.graph
+        
+        centrality = self.calculate_centrality(G, metric=method)
+        sorted_nodes = sorted(centrality.items(), key=lambda x: x[1], reverse=True)
+        return sorted_nodes[:top_k]
+    
+    def identify_bridges(self, G: Optional[nx.Graph] = None) -> List[Tuple[int, int]]:
+        """
+        Find bridges in the graph (edges whose removal disconnects the graph).
+        
+        Parameters
+        ----------
+        G : nx.Graph, optional
+            Graph to analyze
+            
+        Returns
+        -------
+        bridges : list of tuples
+            List of bridge edges
+        """
+        if G is None:
+            G = self.graph
+        
+        return list(nx.bridges(G))
 
